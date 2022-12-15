@@ -3,6 +3,16 @@
 
 namespace voyage
 {
+	void RenderCamera::SetViewMatrix(const DirectX::XMFLOAT4X4& viewmatrix)
+	{
+		_viewMatrix = viewmatrix;
+	}
+
+	void RenderCamera::SetProjMatrix(const DirectX::XMFLOAT4X4& projmatrix)
+	{
+		_projMatrix = projmatrix;
+	}
+
 	void RenderScene::AttachRenderable(Renderable* renderable)
 	{
 
@@ -26,6 +36,8 @@ namespace voyage
 
 	RenderCamera* RenderEngine::CreateRenderCamera()
 	{
+		
+
 		return nullptr;
 	}
 

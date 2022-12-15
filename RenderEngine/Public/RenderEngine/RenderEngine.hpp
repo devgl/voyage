@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>	
+#include <DirectXMath.h>
 
 namespace voyage
 {
@@ -11,7 +12,13 @@ namespace voyage
 
 	class RENDERENGINE_API RenderCamera
 	{
+	public:
+		void SetViewMatrix(const DirectX::XMFLOAT4X4& viewmatrix);
+		void SetProjMatrix(const DirectX::XMFLOAT4X4& projmatrix);
 
+	private:
+		DirectX::XMFLOAT4X4 _viewMatrix;
+		DirectX::XMFLOAT4X4 _projMatrix;
 	};
 
 	class RENDERENGINE_API RenderScene

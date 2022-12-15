@@ -6,6 +6,7 @@ add_library(RenderEngine SHARED ${RenderEngine_SRC})
 target_precompile_headers(RenderEngine PUBLIC "pch.hpp")
 target_include_directories(RenderEngine PUBLIC "Public" PRIVATE "Public/RenderEngine")
 target_compile_definitions(RenderEngine PRIVATE RENDERENGINE_IMPL)
+target_link_libraries(RenderEngine PUBLIC DirectXMath ImGui)
 
 if(WIN32)
 	target_compile_definitions(RenderEngine PUBLIC WIN32_LEAN_AND_MEAN)
