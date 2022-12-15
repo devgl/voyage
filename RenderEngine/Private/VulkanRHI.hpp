@@ -15,9 +15,9 @@ namespace voyage
         CommandQueueType_Transfer = 2,
     };
 
-    class RENDERSYSTEM_API Semaphore
+    class  Semaphore
     {
-        friend class VulkanRHI;
+        friend class RHI;
 
     public:
         bool IsSignaled(uint64_t signal);
@@ -29,9 +29,9 @@ namespace voyage
         std::atomic_uint64_t _signal;
     };
 
-    class RENDERSYSTEM_API Swapchain
+    class  Swapchain
     {
-        friend class VulkanRHI;
+        friend class RHI;
 
     public:
         vk::Image GetBackbuffer(uint32_t index);
@@ -45,10 +45,10 @@ namespace voyage
 		uint32_t _currentFrameIndex;
     };
 
-    class RENDERSYSTEM_API VulkanRHI
+    class RHI
     {
     public:
-        VulkanRHI();
+        RHI();
         vk::CommandPool AllocateCommandPool(CommandQueueType type, uint64_t categoryHash);
         void AllocateCommandBuffer(CommandQueueType type, vk::CommandPool commandpool, vk::CommandBufferLevel level, uint32_t count, vk::CommandBuffer* pCommandBuffers);
         void FreeCommandPool(CommandQueueType type, vk::CommandPool commandpool, Semaphore* semaphore, uint64_t signal);

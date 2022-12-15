@@ -1,23 +1,12 @@
-#include <RenderSystem/VulkanRHI.h>
+#include <Framework/Application.hpp>
+
+class Editor : public voyage::Application
+{
+
+};
 
 int main()
 {
-	auto rhi = new voyage::VulkanRHI();
-	//auto swapchain = rhi->CreateSwapchain();
-	//
-	//if (rhi->NextFrameReady(swapchain))
-	//{
-	//	auto cmd = rhi->AllocateCommandBuffer();
-	//
-	//	vk::CommandBufferBeginInfo beginInfo{};
-	//	cmd.begin(beginInfo);
-	//	cmd.end();
-	//
-	//	//rhi->Submit();
-	//	rhi->Present(swapchain);
-	//}
-
-	delete rhi;
-
+	Editor editor;
 	return 0;
 }

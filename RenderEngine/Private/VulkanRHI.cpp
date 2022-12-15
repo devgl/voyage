@@ -1,4 +1,4 @@
-#include "VulkanRHI.h"
+#include "VulkanRHI.hpp"
 
 namespace voyage
 {
@@ -22,14 +22,14 @@ namespace voyage
 		return _currentFrameIndex;
 	}
 
-	VulkanRHI::VulkanRHI()
+	RHI::RHI()
 	{
 		_CreateInstance();
 		_SelectPhysicalDevice();
 		_CreateDevice();
 	}
 
-	void VulkanRHI::_CreateInstance()
+	void RHI::_CreateInstance()
 	{
 		constexpr const char* extensions[] = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -46,7 +46,7 @@ namespace voyage
 		_instance = vk::createInstance(instanceInfo);
 	}
 
-	void VulkanRHI::_SelectPhysicalDevice()
+	void RHI::_SelectPhysicalDevice()
 	{
 		auto physicalDevices = _instance.enumeratePhysicalDevices();
 		if (physicalDevices.size() == 1)
@@ -86,7 +86,7 @@ namespace voyage
 		}
 	}
 
-	void VulkanRHI::_CreateDevice()
+	void RHI::_CreateDevice()
 	{
 		constexpr const char* extensions[] = {
 			VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
@@ -138,7 +138,7 @@ namespace voyage
 		}
 	}
 
-	vk::CommandPool VulkanRHI::AllocateCommandPool(CommandQueueType type, uint64_t categoryHash)
+	vk::CommandPool RHI::AllocateCommandPool(CommandQueueType type, uint64_t categoryHash)
 	{
 		for (auto pPool : _commandpools[type])
 		{
@@ -168,7 +168,7 @@ namespace voyage
 		return pool;
 	}
 
-	void VulkanRHI::FreeCommandPool(CommandQueueType type, vk::CommandPool commandpool, Semaphore* semaphore, uint64_t signal)
+	void RHI::FreeCommandPool(CommandQueueType type, vk::CommandPool commandpool, Semaphore* semaphore, uint64_t signal)
 	{
 		for (auto pPool : _commandpools[type])
 		{
@@ -183,7 +183,7 @@ namespace voyage
 		}
 	}
 
-	void VulkanRHI::AllocateCommandBuffer(CommandQueueType type, vk::CommandPool commandpool, vk::CommandBufferLevel level, uint32_t count, vk::CommandBuffer* pCommandBuffers)
+	void RHI::AllocateCommandBuffer(CommandQueueType type, vk::CommandPool commandpool, vk::CommandBufferLevel level, uint32_t count, vk::CommandBuffer* pCommandBuffers)
 	{
 		vk::CommandBufferAllocateInfo info{};
 		info.commandPool = commandpool;
@@ -192,7 +192,7 @@ namespace voyage
 		vk::resultCheck(_device.allocateCommandBuffers(&info, pCommandBuffers), "failed to allocate command buffers");
 	}
 
-	Swapchain* VulkanRHI::CreateSwapchain(uint32_t width, uint32_t height, vk::Format format, uint32_t minFrameCount)
+	Swapchain* RHI::CreateSwapchain(uint32_t width, uint32_t height, vk::Format format, uint32_t minFrameCount)
 	{
 		vk::SurfaceKHR surface;
 
@@ -217,7 +217,7 @@ namespace voyage
 		return swapchain;
 	}
 
-	bool VulkanRHI::NextFrameReady(Swapchain* swapchain)
+	bool RHI::NextFrameReady(Swapchain* swapchain)
     {
         auto result = _device.acquireNextImageKHR(swapchain->_swapchain, 0, nullptr, swapchain->_nextFrameFence, &swapchain->_currentFrameIndex);
         if (result == vk::Result::eSuccess)
@@ -227,7 +227,7 @@ namespace voyage
         return result == vk::Result::eSuccess;
     }
 
-	void VulkanRHI::Present(Swapchain* swapchain, Semaphore* semaphore)
+	void RHI::Present(Swapchain* swapchain, Semaphore* semaphore)
 	{
 		auto queue = _queues[CommandQueueType_Graphics];
 
@@ -240,7 +240,7 @@ namespace voyage
 		vk::resultCheck(queue.presentKHR(info), "failed to present swapchain");
 	}
 
-	void VulkanRHI::DestroySwapchain(Swapchain* swapchain)
+	void RHI::DestroySwapchain(Swapchain* swapchain)
 	{
 		_device.destroyFence(swapchain->_nextFrameFence);
 		_device.destroySwapchainKHR(swapchain->_swapchain);
