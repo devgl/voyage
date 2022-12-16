@@ -4,12 +4,19 @@ set(RenderEngine_SRC
 
 add_library(RenderEngine SHARED ${RenderEngine_SRC})
 target_precompile_headers(RenderEngine PUBLIC "pch.hpp")
-target_include_directories(RenderEngine PUBLIC "Public" PRIVATE "Public/RenderEngine")
+target_include_directories(RenderEngine 
+	PUBLIC 
+		"Public" 
+	PRIVATE 
+		"Public/RenderEngine" 
+		"Private"
+)
 target_compile_definitions(RenderEngine PRIVATE RENDERENGINE_IMPL)
-target_link_libraries(RenderEngine PUBLIC DirectXMath ImGui)
+target_link_libraries(RenderEngine PUBLIC DirectXMath ImGui Platform)
 
 if(WIN32)
 	target_compile_definitions(RenderEngine PUBLIC WIN32_LEAN_AND_MEAN)
+	target_compile_definitions(RenderEngine PRIVATE PLATFORM_WIN32)
 endif()
 
 find_package(Vulkan REQUIRED)

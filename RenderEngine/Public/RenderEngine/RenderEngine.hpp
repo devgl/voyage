@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>	
-#include <DirectXMath.h>
+#include <Platform/Window.hpp>
 
 namespace voyage
 {
@@ -33,7 +33,7 @@ namespace voyage
 	class RENDERENGINE_API RenderEngine
 	{
 	public:
-		RenderEngine();
+		RenderEngine(Window* window);
 		~RenderEngine();
 
 		RenderCamera* CreateRenderCamera();
@@ -44,9 +44,12 @@ namespace voyage
 
 		RenderScene* GetRenderScene() { return _renderScene; }
 
+		void Render(RenderCamera* camera);
+
 	private:
 		std::vector<RenderCamera*> _renderCameras;
-		RenderScene* _renderScene{nullptr};
-		class RHI* _rhi{nullptr};
+		RenderScene* _renderScene{ nullptr };
+		Window* _window{ nullptr };
+		class RHI* _rhi{ nullptr };
 	};
 }

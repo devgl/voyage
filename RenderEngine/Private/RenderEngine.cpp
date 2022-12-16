@@ -23,10 +23,11 @@ namespace voyage
 
 	}
 
-	RenderEngine::RenderEngine()
+	RenderEngine::RenderEngine(Window* window)
 	{
 		_renderScene = new RenderScene();
 		_rhi = new RHI();
+		_window = window;
 	}
 
 	RenderEngine::~RenderEngine()

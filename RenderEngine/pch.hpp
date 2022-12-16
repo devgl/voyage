@@ -5,3 +5,5 @@
 #else
 #define RENDERENGINE_API __declspec(dllimport)
 #endif
+
+#include <DirectXMath.h>

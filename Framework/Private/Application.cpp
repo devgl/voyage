@@ -5,11 +5,13 @@ namespace voyage
 {
 	Application::Application()
 	{
-		Framework::Initialize();
+		_window = Window::CreateRenderWindow();
+		Framework::Initialize(_window);
 	}
 
 	Application::~Application()
 	{
 		Framework::Uninitialize();
+		Window::DestroyRenderWindow(_window);
 	}
 }

@@ -1,12 +1,13 @@
 #include "Framework.hpp"
 
+
 namespace voyage
 {
 	RenderEngine* Framework::renderEngine = nullptr;
 
-	void Framework::Initialize()
+	void Framework::Initialize(Window* window)
 	{
-		renderEngine = new RenderEngine();
+		renderEngine = new RenderEngine(window);
 	}
 
 	void Framework::Uninitialize()
