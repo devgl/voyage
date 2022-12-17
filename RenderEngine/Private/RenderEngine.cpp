@@ -32,7 +32,9 @@ namespace voyage
 
 	RenderEngine::~RenderEngine()
 	{
+		delete _renderScene;
 		delete _rhi;
+		_window = nullptr;
 	}
 
 	RenderCamera* RenderEngine::CreateRenderCamera()
@@ -53,6 +55,11 @@ namespace voyage
 	}
 
 	void RenderEngine::DestroyRenderable(Renderable* renderable)
+	{
+
+	}
+
+	void RenderEngine::Render(RenderCamera* camera)
 	{
 
 	}

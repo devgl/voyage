@@ -1,11 +1,11 @@
 #include "CameraComponent.hpp"
-#include "Framework.hpp"
+#include "Application.hpp"
 
 namespace voyage
 {
 	CameraComponent::CameraComponent()
 	{
-		_renderCamera = Framework::renderEngine->CreateRenderCamera();
+		_renderCamera = GetApp()->GetRenderEngine()->CreateRenderCamera();
 	}
 
 	CameraComponent::~CameraComponent()

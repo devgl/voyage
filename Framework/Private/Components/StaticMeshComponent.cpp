@@ -1,15 +1,15 @@
 #include "StaticMeshComponent.hpp"
-#include "Framework.hpp"
+#include "Application.hpp"
 
 namespace voyage
 {
 	StaticMeshComponent::StaticMeshComponent()
 	{
-		_renderable = Framework::renderEngine->CreateRendereable();
+		_renderable = GetApp()->GetRenderEngine()->CreateRendereable();
 	}
 
 	StaticMeshComponent::~StaticMeshComponent()
 	{
-		Framework::renderEngine->DestroyRenderable(_renderable);
+		GetApp()->GetRenderEngine()->DestroyRenderable(_renderable);
 	}
 }

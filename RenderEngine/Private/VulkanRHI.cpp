@@ -222,7 +222,7 @@ namespace voyage
         auto result = _device.acquireNextImageKHR(swapchain->_swapchain, 0, nullptr, swapchain->_nextFrameFence, &swapchain->_currentFrameIndex);
         if (result == vk::Result::eSuccess)
         {
-            _device.resetFences(1, &swapchain->_nextFrameFence);
+			vk::resultCheck(_device.resetFences(1, &swapchain->_nextFrameFence), "failed reset fences");
         }
         return result == vk::Result::eSuccess;
     }

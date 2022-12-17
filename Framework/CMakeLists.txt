@@ -1,6 +1,6 @@
 set(Framework_SRC 
 	"Private/Components/CameraComponent.cpp"
- "Private/Framework.cpp" "Private/Application.cpp" "Private/Components/StaticMeshComponent.cpp" "Private/GameObject.cpp")
+  "Private/Application.cpp" "Private/Components/StaticMeshComponent.cpp" "Private/GameObject.cpp")
 
 add_library(Framework SHARED ${Framework_SRC})
 target_link_libraries(Framework PUBLIC RenderEngine DirectXMath)
