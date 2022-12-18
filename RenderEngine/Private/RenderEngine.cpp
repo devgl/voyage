@@ -29,12 +29,15 @@ namespace voyage
 		_rhi = new RHI();
 		_window = window;
 
-		auto wndSize = _window->GetSize();
-		_swapchain = _rhi->CreateSwapchain(wndSize.x, wndSize.y, vk::Format::eR8G8B8A8Unorm, 3);
+		_semaphore = _rhi->AllocateSemaphore(1);
+		_swapchain = _rhi->CreateSwapchain(_window->GetUnderlyingHandle(), 3);
 	}
 
 	RenderEngine::~RenderEngine()
 	{
+		_rhi->FreeSemaphore(_semaphore);
+		_rhi->DestroySwapchain(_swapchain);
+
 		delete _renderScene;
 		delete _rhi;
 		_window = nullptr;
@@ -62,6 +65,6 @@ namespace voyage
 
 	void RenderEngine::Render(RenderCamera* camera)
 	{
-		
+		_rhi->Present(_swapchain, _semaphore);
 	}
 }

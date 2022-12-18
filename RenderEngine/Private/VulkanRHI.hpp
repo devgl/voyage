@@ -15,11 +15,12 @@ namespace voyage
         CommandQueueType_Transfer = 2,
     };
 
-    class  Semaphore
+    class Semaphore
     {
         friend class RHI;
 
     public:
+        void CPUSignal(uint64_t signal);
         bool IsSignaled(uint64_t signal);
         uint64_t NextSignal();
 
@@ -29,7 +30,7 @@ namespace voyage
         std::atomic_uint64_t _signal;
     };
 
-    class  Swapchain
+    class Swapchain
     {
         friend class RHI;
 
@@ -38,6 +39,7 @@ namespace voyage
         uint32_t GetCurrentFrameIndex() const;
 
     private:
+        vk::SurfaceKHR _surface;
         vk::SwapchainKHR _swapchain;
         vk::Fence _nextFrameFence;
 
@@ -53,10 +55,10 @@ namespace voyage
         void AllocateCommandBuffer(CommandQueueType type, vk::CommandPool commandpool, vk::CommandBufferLevel level, uint32_t count, vk::CommandBuffer* pCommandBuffers);
         void FreeCommandPool(CommandQueueType type, vk::CommandPool commandpool, Semaphore* semaphore, uint64_t signal);
 
-        Semaphore* CreateSemaphore(uint64_t initialvalue);
-        void DestorySemaphore(Semaphore* semaphore);
+        Semaphore* AllocateSemaphore(uint64_t initialvalue);
+        void FreeSemaphore(Semaphore* semaphore);
 
-        Swapchain* CreateSwapchain(uint32_t width, uint32_t height, vk::Format format, uint32_t minFrameCount);
+        Swapchain* CreateSwapchain(intptr_t hwnd, uint32_t minFrameCount);
         bool NextFrameReady(Swapchain* swapchain);
         void Present(Swapchain* swapchain, Semaphore* semaphore);
         void DestroySwapchain(Swapchain* swapchain);

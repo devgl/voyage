@@ -141,7 +141,7 @@ namespace voyage
 	{
 		RECT rc;
 		::GetWindowRect(_hWnd, &rc);
-		return DirectX::XMINT2{ rc.left - rc.right, rc.bottom - rc.top };
+		return DirectX::XMINT2{ rc.right - rc.left, rc.bottom - rc.top };
 	}
 
 	void MSWindow::_OnResize(uint32_t width, uint32_t height)

@@ -2,6 +2,17 @@
 
 namespace voyage
 {
+
+	void Semaphore::CPUSignal(uint64_t signal)
+	{
+		vk::SemaphoreSignalInfo info{};
+		info.semaphore = _semaphore;
+		info.value = signal;
+
+		_device.signalSemaphore(info);
+		_signal.store(signal);
+	}
+
 	bool Semaphore::IsSignaled(uint64_t signal)
 	{
 		return _device.getSemaphoreCounterValue(_semaphore) >= signal;
@@ -32,7 +43,6 @@ namespace voyage
 	void RHI::_CreateInstance()
 	{
 		constexpr const char* extensions[] = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 			VK_KHR_SURFACE_EXTENSION_NAME,
 			VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
 		};
@@ -41,8 +51,13 @@ namespace voyage
 			"VK_LAYER_KHRONOS_validation"
 		};
 
+		vk::ApplicationInfo appInfo{};
+		appInfo.apiVersion = VK_API_VERSION_1_3;
+
 		vk::InstanceCreateInfo instanceInfo{};
-		instanceInfo.setPpEnabledExtensionNames(extensions);
+		instanceInfo.setPApplicationInfo(&appInfo);
+		instanceInfo.setPEnabledExtensionNames(extensions);
+		instanceInfo.setPEnabledLayerNames(layers);
 		_instance = vk::createInstance(instanceInfo);
 	}
 
@@ -89,7 +104,7 @@ namespace voyage
 	void RHI::_CreateDevice()
 	{
 		constexpr const char* extensions[] = {
-			VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 			VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME
 		};
 
@@ -107,8 +122,14 @@ namespace voyage
 		queueInfo[CommandQueueType_Transfer].queueCount = 1;
 		queueInfo[CommandQueueType_Transfer].queueFamilyIndex = _queuefamilyIndex[CommandQueueType_Transfer];
 
+		auto properties = _physicalDevice.enumerateDeviceExtensionProperties();
+
+		vk::PhysicalDeviceVulkan12Features features{};
+		features.timelineSemaphore = true;
+
 		vk::DeviceCreateInfo info{};
-		info.setPpEnabledExtensionNames(extensions);
+		info.setPNext(&features);
+		info.setPEnabledExtensionNames(extensions);
 		info.setQueueCreateInfos(queueInfo);
 		_device = _physicalDevice.createDevice(info);
 
@@ -183,6 +204,31 @@ namespace voyage
 		}
 	}
 
+	Semaphore* RHI::AllocateSemaphore(uint64_t initialvalue)
+	{
+		vk::SemaphoreTypeCreateInfo semaphoreType{};
+		semaphoreType.initialValue = initialvalue;
+		semaphoreType.semaphoreType = vk::SemaphoreType::eTimeline;
+
+		vk::SemaphoreCreateInfo info{};
+		info.setPNext(&semaphoreType);
+
+		auto s = new Semaphore();
+		s->_device = _device;
+		s->_semaphore = _device.createSemaphore(info);
+		s->_signal = initialvalue;
+		return s;
+	}
+
+	void RHI::FreeSemaphore(Semaphore* semaphore)
+	{
+		if (semaphore != nullptr)
+		{
+			_device.destroySemaphore(semaphore->_semaphore);
+			delete semaphore;
+		}
+	}
+
 	void RHI::AllocateCommandBuffer(CommandQueueType type, vk::CommandPool commandpool, vk::CommandBufferLevel level, uint32_t count, vk::CommandBuffer* pCommandBuffers)
 	{
 		vk::CommandBufferAllocateInfo info{};
@@ -192,21 +238,29 @@ namespace voyage
 		vk::resultCheck(_device.allocateCommandBuffers(&info, pCommandBuffers), "failed to allocate command buffers");
 	}
 
-	Swapchain* RHI::CreateSwapchain(uint32_t width, uint32_t height, vk::Format format, uint32_t minFrameCount)
+	Swapchain* RHI::CreateSwapchain(intptr_t hwnd, uint32_t minFrameCount)
 	{
-		vk::SurfaceKHR surface;
-
 		auto swapchain = new Swapchain();
 		swapchain->_currentFrameIndex = -1;
+
+		vk::Win32SurfaceCreateInfoKHR surfaceInfo{};
+		surfaceInfo.hwnd = (HWND)hwnd;
+		surfaceInfo.hinstance = ::GetModuleHandle(NULL);
+		swapchain->_surface = _instance.createWin32SurfaceKHR(surfaceInfo);
+
+		auto caps = _physicalDevice.getSurfaceCapabilitiesKHR(swapchain->_surface);
+		auto formats = _physicalDevice.getSurfaceFormatsKHR(swapchain->_surface);
 
 		vk::SwapchainCreateInfoKHR swapchainInfo{};
 		swapchainInfo.queueFamilyIndexCount = 1;
 		swapchainInfo.pQueueFamilyIndices = &_queuefamilyIndex[CommandQueueType_Graphics];
-		swapchainInfo.surface = surface;
+		swapchainInfo.surface = swapchain->_surface;
 		swapchainInfo.minImageCount = minFrameCount;
-		swapchainInfo.imageFormat = format;
-		swapchainInfo.imageExtent = vk::Extent2D{ width, height };
+		swapchainInfo.imageFormat = formats[0].format;
+		swapchainInfo.imageColorSpace = formats[0].colorSpace;
+		swapchainInfo.imageExtent = caps.currentExtent;
 		swapchainInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+		swapchainInfo.imageArrayLayers = 1;
 		swapchain->_swapchain = _device.createSwapchainKHR(swapchainInfo);
 
 		vk::FenceCreateInfo fenceInfo{};
@@ -235,13 +289,14 @@ namespace voyage
 		info.swapchainCount = 1;
 		info.pSwapchains = &swapchain->_swapchain;
 		info.pImageIndices = &swapchain->_currentFrameIndex;
-		info.waitSemaphoreCount = 1;
-		info.pWaitSemaphores = &semaphore->_semaphore;
+		//info.waitSemaphoreCount = 1;
+		//info.pWaitSemaphores = &semaphore->_semaphore;
 		vk::resultCheck(queue.presentKHR(info), "failed to present swapchain");
 	}
 
 	void RHI::DestroySwapchain(Swapchain* swapchain)
 	{
+		_instance.destroySurfaceKHR(swapchain->_surface);
 		_device.destroyFence(swapchain->_nextFrameFence);
 		_device.destroySwapchainKHR(swapchain->_swapchain);
 		delete swapchain;
