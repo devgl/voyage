@@ -48,8 +48,10 @@ namespace voyage
 
 	private:
 		std::vector<RenderCamera*> _renderCameras;
+		std::vector<Renderable*> _renderables;
 		RenderScene* _renderScene{ nullptr };
 		Window* _window{ nullptr };
 		class RHI* _rhi{ nullptr };
+		class Swapchain* _swapchain{ nullptr };
 	};
 }

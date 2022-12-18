@@ -28,6 +28,9 @@ namespace voyage
 		_renderScene = new RenderScene();
 		_rhi = new RHI();
 		_window = window;
+
+		auto wndSize = _window->GetSize();
+		_swapchain = _rhi->CreateSwapchain(wndSize.x, wndSize.y, vk::Format::eR8G8B8A8Unorm, 3);
 	}
 
 	RenderEngine::~RenderEngine()
@@ -39,29 +42,26 @@ namespace voyage
 
 	RenderCamera* RenderEngine::CreateRenderCamera()
 	{
-		
-
-		return nullptr;
+		return _renderCameras.emplace_back();
 	}
 
-	void RenderEngine::DestoryRenderCamera(RenderCamera*)
+	void RenderEngine::DestoryRenderCamera(RenderCamera* renderCamera)
 	{
-
+		_renderCameras.erase(std::remove_if(_renderCameras.begin(), _renderCameras.end(), [=](auto cam)->bool { return cam == renderCamera; }));
 	}
 
 	Renderable* RenderEngine::CreateRendereable()
 	{
-		return nullptr;
+		return _renderables.emplace_back();
 	}
 
 	void RenderEngine::DestroyRenderable(Renderable* renderable)
 	{
-
+		_renderables.erase(std::remove_if(_renderables.begin(), _renderables.end(), [=](auto r) { return r == renderable; }));
 	}
 
 	void RenderEngine::Render(RenderCamera* camera)
 	{
-
+		
 	}
-
 }
