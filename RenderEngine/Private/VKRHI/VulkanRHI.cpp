@@ -74,7 +74,8 @@ namespace voyage
 	{
 		constexpr const char* extensions[] = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME
+			VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
+			VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
 		};
 
 		float queuePriority = 1.0f;
@@ -93,11 +94,16 @@ namespace voyage
 
 		auto properties = _physicalDevice.enumerateDeviceExtensionProperties();
 
-		vk::PhysicalDeviceVulkan12Features features{};
-		features.timelineSemaphore = true;
+		vk::PhysicalDeviceVulkan12Features features12{};
+		features12.timelineSemaphore = true;
+
+		vk::PhysicalDeviceVulkan13Features features13{};
+		features13.dynamicRendering = true;
+
+		features12.setPNext(&features13);
 
 		vk::DeviceCreateInfo info{};
-		info.setPNext(&features);
+		info.setPNext(&features12);
 		info.setPEnabledExtensionNames(extensions);
 		info.setQueueCreateInfos(queueInfo);
 		_device = _physicalDevice.createDevice(info);
