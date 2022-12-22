@@ -38,6 +38,7 @@ namespace voyage
         RHI();
         vk::CommandPool AllocateCommandPool(CommandQueueType type, uint64_t categoryHash);
         void AllocateCommandBuffer(CommandQueueType type, vk::CommandPool commandpool, vk::CommandBufferLevel level, uint32_t count, vk::CommandBuffer* pCommandBuffers);
+        void SubmitCommandBuffers(CommandQueueType type, uint32_t count, const vk::SubmitInfo* pInfos);
         void FreeCommandPool(CommandQueueType type, vk::CommandPool commandpool, Semaphore* semaphore, uint64_t signal);
 
         Semaphore* AllocateSemaphore(uint64_t initialvalue);
@@ -49,6 +50,7 @@ namespace voyage
         Swapchain* CreateSwapchain(intptr_t hwnd, uint32_t minFrameCount);
         vk::Image GetBackbuffer(Swapchain* swapchain, uint32_t index);
         uint32_t GetCurrentFrameIndex(Swapchain* swapchain) const;
+        uint32_t GetFrameCount(Swapchain* swapchain) const;
         bool NextFrameReady(Swapchain* swapchain);
         void Present(Swapchain* swapchain, Semaphore* semaphore);
         void DestroySwapchain(Swapchain* swapchain);

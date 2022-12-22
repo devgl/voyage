@@ -1,15 +1,25 @@
 #pragma once
 
+#include <vector>
+
 namespace voyage
 {
+	class RHI;
+	class Swapchain;
+	class RenderScene;
+	class RenderCamera;
+	class RenderContext;
+	class RenderPass;
+
 	class Renderer
 	{
 	public:
-		Renderer(class RHI* rhi);
+		Renderer(RHI* rhi, Swapchain* swapchain);
 		virtual ~Renderer() = default;
-		virtual void Draw(class RHI* rhi, class Swapchain* swapchain, class RenderScene* scene, class RenderCamera* camera);
+		virtual void Draw(RHI* rhi, Swapchain* swapchain, RenderScene* scene, RenderCamera* camera);
 
 	private:
-		class OpaquePass* _opaquePass{ nullptr };
+		RenderPass* _opaquePass{ nullptr };
+		std::vector<RenderContext*> _contexts;
 	};
 }

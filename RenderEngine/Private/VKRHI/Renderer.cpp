@@ -1,13 +1,19 @@
 #include "Renderer.hpp"
 #include "RenderEngine.hpp"
-#include "RenderContext.hpp"
 #include "OpaquePass.hpp"
 #include "VulkanRHI.hpp"
 
 namespace voyage
 {
-	Renderer::Renderer(RHI* rhi)
+	Renderer::Renderer(RHI* rhi, Swapchain* swapchain)
 	{
+		auto frameCount = rhi->GetFrameCount(swapchain);
+		_contexts.resize(frameCount);
+		for (uint32_t i = 0; i < frameCount; i++)
+		{
+			_contexts[i] = new RenderContext();
+		}
+
 		_opaquePass = new OpaquePass(rhi);
 	}
 
@@ -15,7 +21,10 @@ namespace voyage
 	{
 		auto index = rhi->GetCurrentFrameIndex(swapchain);
 		auto backbuffer = rhi->GetBackbuffer(swapchain, index);
+		auto renderContext = _contexts[index];
 
+		vk::CommandBuffer cmd;
+		_opaquePass->Draw(renderContext, cmd);
 		
 	}
 }

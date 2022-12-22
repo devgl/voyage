@@ -8,7 +8,7 @@ namespace voyage
 
 	}
 
-	void RenderPass::Draw()
+	void RenderPass::Draw(RenderContext* renderContext, vk::CommandBuffer cmd)
 	{
 
 	}

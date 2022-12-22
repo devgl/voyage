@@ -6,7 +6,7 @@ set(RenderEngine_VULKAN_RHI
 	"Private/VKRHI/VulkanRHI.cpp"
 	"Private/VKRHI/OpaquePass.cpp"
 	"Private/VKRHI/RenderPass.cpp"
- "Private/VKRHI/RenderContext.cpp")
+ )
 
 add_library(RenderEngine SHARED ${RenderEngine_SRC} ${RenderEngine_VULKAN_RHI} )
 target_precompile_headers(RenderEngine PUBLIC "pch.hpp")

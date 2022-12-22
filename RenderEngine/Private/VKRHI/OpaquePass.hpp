@@ -8,7 +8,7 @@ namespace voyage
 	{
 	public:
 		OpaquePass(RHI* rhi);
-		void Draw(RHI* rhi, vk::CommandBuffer cmd);
+		void Draw(RenderContext* renderContext, vk::CommandBuffer cmd) override;
 
 	private:
 		vk::RenderPass _pass;

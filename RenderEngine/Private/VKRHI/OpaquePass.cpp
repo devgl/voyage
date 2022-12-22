@@ -10,13 +10,10 @@ namespace voyage
 	}
 
 
-	void OpaquePass::Draw(RHI* rhi, vk::CommandBuffer cmd)
+	void OpaquePass::Draw(RenderContext* renderContext, vk::CommandBuffer cmd)
 	{
-		vk::RenderPassBeginInfo info{};
-		//cmd.beginRenderPass(&info, nullptr);
-
-
-
-		cmd.endRenderPass();
+		vk::RenderingInfo info{};
+		cmd.beginRendering(info);
+		cmd.endRendering();
 	}
 }

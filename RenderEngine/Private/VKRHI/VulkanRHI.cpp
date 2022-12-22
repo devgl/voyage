@@ -232,6 +232,11 @@ namespace voyage
 		vk::resultCheck(_device.allocateCommandBuffers(&info, pCommandBuffers), "failed to allocate command buffers");
 	}
 
+	void RHI::SubmitCommandBuffers(CommandQueueType type, uint32_t count, const vk::SubmitInfo* pInfos)
+	{
+		vk::resultCheck(_queues[type].submit(count, pInfos, nullptr), "failed to submit to command queue");
+	}
+
 	Swapchain* RHI::CreateSwapchain(intptr_t hwnd, uint32_t minFrameCount)
 	{
 		auto swapchain = new Swapchain();
@@ -273,6 +278,11 @@ namespace voyage
 	uint32_t RHI::GetCurrentFrameIndex(Swapchain* swapchain) const
 	{
 		return swapchain->currentFrameIndex;
+	}
+
+	uint32_t RHI::GetFrameCount(Swapchain* swapchain) const
+	{
+		return swapchain->backbuffers.size();
 	}
 
 	bool RHI::NextFrameReady(Swapchain* swapchain)
