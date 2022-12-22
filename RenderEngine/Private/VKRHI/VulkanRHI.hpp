@@ -18,33 +18,18 @@ namespace voyage
     class Semaphore
     {
         friend class RHI;
-
-    public:
-        void CPUSignal(uint64_t signal);
-        bool IsSignaled(uint64_t signal);
-        uint64_t NextSignal();
-
-    private:
-        vk::Device _device;
-        vk::Semaphore _semaphore;
-        std::atomic_uint64_t _signal;
+        vk::Semaphore semaphore;
+        std::atomic_uint64_t signal;
     };
 
     class Swapchain
     {
         friend class RHI;
-
-    public:
-        vk::Image GetBackbuffer(uint32_t index);
-        uint32_t GetCurrentFrameIndex() const;
-
-    private:
-        vk::SurfaceKHR _surface;
-        vk::SwapchainKHR _swapchain;
-        vk::Fence _nextFrameFence;
-
-		std::vector<vk::Image> _backbuffers;
-		uint32_t _currentFrameIndex;
+        vk::SurfaceKHR surface;
+        vk::SwapchainKHR swapchain;
+        vk::Fence nextFrameFence;
+		std::vector<vk::Image> backbuffers;
+		uint32_t currentFrameIndex;
     };
 
     class RHI
@@ -56,12 +41,25 @@ namespace voyage
         void FreeCommandPool(CommandQueueType type, vk::CommandPool commandpool, Semaphore* semaphore, uint64_t signal);
 
         Semaphore* AllocateSemaphore(uint64_t initialvalue);
+        void CPUSignal(Semaphore* semaphore, uint64_t signal);
+        bool IsSignaled(Semaphore* semaphore, uint64_t signal);
+        uint64_t NextSignal(Semaphore* semaphore);
         void FreeSemaphore(Semaphore* semaphore);
 
         Swapchain* CreateSwapchain(intptr_t hwnd, uint32_t minFrameCount);
+        vk::Image GetBackbuffer(Swapchain* swapchain, uint32_t index);
+        uint32_t GetCurrentFrameIndex(Swapchain* swapchain) const;
         bool NextFrameReady(Swapchain* swapchain);
         void Present(Swapchain* swapchain, Semaphore* semaphore);
         void DestroySwapchain(Swapchain* swapchain);
+
+        vk::DescriptorPool AllocateDescriptorPool(uint32_t maxSets, uint32_t sizeCount, vk::DescriptorPoolSize* pSizes);
+        void AllocateDescriptorSets(vk::DescriptorPool descriptorPool, uint32_t count, vk::DescriptorSetLayout* pLayouts, vk::DescriptorSet* pDescriptorSets);
+        void UpdateDescriptorSet(vk::DescriptorSet set, uint32_t countWrite, vk::WriteDescriptorSet* pWrites, uint32_t copyCount, vk::CopyDescriptorSet* pCopies);
+        void FreeDescriptorPool(vk::DescriptorPool descriptorPool);
+
+        vk::RenderPass CreateRenderPass();
+        void DestroyRenderPass(vk::RenderPass pass);
 
     private:
         void _CreateInstance();

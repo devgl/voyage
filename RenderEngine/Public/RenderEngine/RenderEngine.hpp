@@ -54,5 +54,6 @@ namespace voyage
 		class RHI* _rhi{ nullptr };
 		class Swapchain* _swapchain{ nullptr };
 		class Semaphore* _semaphore{ nullptr };
+		class Renderer* _renderer{ nullptr };
 	};
 }

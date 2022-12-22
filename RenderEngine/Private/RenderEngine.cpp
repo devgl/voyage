@@ -1,5 +1,6 @@
 #include "RenderEngine.hpp"
 #include "VulkanRHI.hpp"
+#include "Renderer.hpp"
 
 namespace voyage
 {
@@ -31,10 +32,14 @@ namespace voyage
 
 		_semaphore = _rhi->AllocateSemaphore(1);
 		_swapchain = _rhi->CreateSwapchain(_window->GetUnderlyingHandle(), 3);
+
+		_renderer = new Renderer(_rhi);
 	}
 
 	RenderEngine::~RenderEngine()
 	{
+		delete _renderer;
+
 		_rhi->FreeSemaphore(_semaphore);
 		_rhi->DestroySwapchain(_swapchain);
 
@@ -65,6 +70,10 @@ namespace voyage
 
 	void RenderEngine::Render(RenderCamera* camera)
 	{
-		_rhi->Present(_swapchain, _semaphore);
+		if (_rhi->NextFrameReady(_swapchain))
+		{
+			_renderer->Draw(_rhi, _swapchain, _renderScene, camera);
+			_rhi->Present(_swapchain, _semaphore);
+		}
 	}
 }

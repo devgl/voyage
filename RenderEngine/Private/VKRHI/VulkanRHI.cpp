@@ -2,37 +2,6 @@
 
 namespace voyage
 {
-
-	void Semaphore::CPUSignal(uint64_t signal)
-	{
-		vk::SemaphoreSignalInfo info{};
-		info.semaphore = _semaphore;
-		info.value = signal;
-
-		_device.signalSemaphore(info);
-		_signal.store(signal);
-	}
-
-	bool Semaphore::IsSignaled(uint64_t signal)
-	{
-		return _device.getSemaphoreCounterValue(_semaphore) >= signal;
-	}
-
-	uint64_t Semaphore::NextSignal()
-	{
-		return ++_signal;
-	}
-
-	vk::Image Swapchain::GetBackbuffer(uint32_t index)
-	{
-		return _backbuffers[index];
-	}
-
-	uint32_t Swapchain::GetCurrentFrameIndex() const
-	{
-		return _currentFrameIndex;
-	}
-
 	RHI::RHI()
 	{
 		_CreateInstance();
@@ -196,7 +165,7 @@ namespace voyage
 			auto data = static_cast<CommandPoolData*>(pPool);
 			if (data->pool == commandpool)
 			{
-				data->semaphore = semaphore->_semaphore;
+				data->semaphore = semaphore->semaphore;
 				data->signal = signal;
 				data->inuse = 0;
 				break;
@@ -214,17 +183,36 @@ namespace voyage
 		info.setPNext(&semaphoreType);
 
 		auto s = new Semaphore();
-		s->_device = _device;
-		s->_semaphore = _device.createSemaphore(info);
-		s->_signal = initialvalue;
+		s->semaphore = _device.createSemaphore(info);
+		s->signal = initialvalue;
 		return s;
+	}
+
+	void RHI::CPUSignal(Semaphore* semaphore, uint64_t signal)
+	{
+		vk::SemaphoreSignalInfo info{};
+		info.semaphore = semaphore->semaphore;
+		info.value = signal;
+
+		_device.signalSemaphore(info);
+		semaphore->signal.store(signal);
+	}
+
+	bool RHI::IsSignaled(Semaphore* semaphore, uint64_t signal)
+	{
+		return _device.getSemaphoreCounterValue(semaphore->semaphore) >= signal;
+	}
+
+	uint64_t RHI::NextSignal(Semaphore* semaphore)
+	{
+		return ++semaphore->signal;
 	}
 
 	void RHI::FreeSemaphore(Semaphore* semaphore)
 	{
 		if (semaphore != nullptr)
 		{
-			_device.destroySemaphore(semaphore->_semaphore);
+			_device.destroySemaphore(semaphore->semaphore);
 			delete semaphore;
 		}
 	}
@@ -241,42 +229,52 @@ namespace voyage
 	Swapchain* RHI::CreateSwapchain(intptr_t hwnd, uint32_t minFrameCount)
 	{
 		auto swapchain = new Swapchain();
-		swapchain->_currentFrameIndex = -1;
+		swapchain->currentFrameIndex = -1;
 
 		vk::Win32SurfaceCreateInfoKHR surfaceInfo{};
 		surfaceInfo.hwnd = (HWND)hwnd;
 		surfaceInfo.hinstance = ::GetModuleHandle(NULL);
-		swapchain->_surface = _instance.createWin32SurfaceKHR(surfaceInfo);
+		swapchain->surface = _instance.createWin32SurfaceKHR(surfaceInfo);
 
-		auto caps = _physicalDevice.getSurfaceCapabilitiesKHR(swapchain->_surface);
-		auto formats = _physicalDevice.getSurfaceFormatsKHR(swapchain->_surface);
+		auto caps = _physicalDevice.getSurfaceCapabilitiesKHR(swapchain->surface);
+		auto formats = _physicalDevice.getSurfaceFormatsKHR(swapchain->surface);
 
 		vk::SwapchainCreateInfoKHR swapchainInfo{};
 		swapchainInfo.queueFamilyIndexCount = 1;
 		swapchainInfo.pQueueFamilyIndices = &_queuefamilyIndex[CommandQueueType_Graphics];
-		swapchainInfo.surface = swapchain->_surface;
+		swapchainInfo.surface = swapchain->surface;
 		swapchainInfo.minImageCount = minFrameCount;
 		swapchainInfo.imageFormat = formats[0].format;
 		swapchainInfo.imageColorSpace = formats[0].colorSpace;
 		swapchainInfo.imageExtent = caps.currentExtent;
 		swapchainInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 		swapchainInfo.imageArrayLayers = 1;
-		swapchain->_swapchain = _device.createSwapchainKHR(swapchainInfo);
+		swapchain->swapchain = _device.createSwapchainKHR(swapchainInfo);
 
 		vk::FenceCreateInfo fenceInfo{};
-		swapchain->_nextFrameFence = _device.createFence(fenceInfo);
+		swapchain->nextFrameFence = _device.createFence(fenceInfo);
 
-		swapchain->_backbuffers = _device.getSwapchainImagesKHR(swapchain->_swapchain);
+		swapchain->backbuffers = _device.getSwapchainImagesKHR(swapchain->swapchain);
 
 		return swapchain;
 	}
 
+	vk::Image RHI::GetBackbuffer(Swapchain* swapchain, uint32_t index)
+	{
+		return swapchain->backbuffers[index];
+	}
+
+	uint32_t RHI::GetCurrentFrameIndex(Swapchain* swapchain) const
+	{
+		return swapchain->currentFrameIndex;
+	}
+
 	bool RHI::NextFrameReady(Swapchain* swapchain)
     {
-        auto result = _device.acquireNextImageKHR(swapchain->_swapchain, 0, nullptr, swapchain->_nextFrameFence, &swapchain->_currentFrameIndex);
+        auto result = _device.acquireNextImageKHR(swapchain->swapchain, 0, nullptr, swapchain->nextFrameFence, &swapchain->currentFrameIndex);
         if (result == vk::Result::eSuccess)
         {
-			vk::resultCheck(_device.resetFences(1, &swapchain->_nextFrameFence), "failed reset fences");
+			vk::resultCheck(_device.resetFences(1, &swapchain->nextFrameFence), "failed reset fences");
         }
         return result == vk::Result::eSuccess;
     }
@@ -287,8 +285,8 @@ namespace voyage
 
 		vk::PresentInfoKHR info{};
 		info.swapchainCount = 1;
-		info.pSwapchains = &swapchain->_swapchain;
-		info.pImageIndices = &swapchain->_currentFrameIndex;
+		info.pSwapchains = &swapchain->swapchain;
+		info.pImageIndices = &swapchain->currentFrameIndex;
 		//info.waitSemaphoreCount = 1;
 		//info.pWaitSemaphores = &semaphore->_semaphore;
 		vk::resultCheck(queue.presentKHR(info), "failed to present swapchain");
@@ -296,10 +294,50 @@ namespace voyage
 
 	void RHI::DestroySwapchain(Swapchain* swapchain)
 	{
-		_instance.destroySurfaceKHR(swapchain->_surface);
-		_device.destroyFence(swapchain->_nextFrameFence);
-		_device.destroySwapchainKHR(swapchain->_swapchain);
+		_instance.destroySurfaceKHR(swapchain->surface);
+		_device.destroyFence(swapchain->nextFrameFence);
+		_device.destroySwapchainKHR(swapchain->swapchain);
 		delete swapchain;
+	}
+
+	vk::DescriptorPool RHI::AllocateDescriptorPool(uint32_t maxSets, uint32_t sizeCount, vk::DescriptorPoolSize* pSizes)
+	{
+		vk::DescriptorPoolCreateInfo info{};
+		info.maxSets = maxSets;
+		info.poolSizeCount = sizeCount;
+		info.pPoolSizes = pSizes;
+
+		return _device.createDescriptorPool(info);
+	}
+
+	void RHI::AllocateDescriptorSets(vk::DescriptorPool descriptorPool, uint32_t count, vk::DescriptorSetLayout* pLayouts, vk::DescriptorSet* pDescriptorSets)
+	{
+		vk::DescriptorSetAllocateInfo info{};
+		info.descriptorPool = descriptorPool;
+		info.descriptorSetCount = count;
+		info.pSetLayouts = pLayouts;
+		vk::resultCheck(_device.allocateDescriptorSets(&info, pDescriptorSets), "failed to allocate descriptor sets");
+	}
+
+	void RHI::UpdateDescriptorSet(vk::DescriptorSet set, uint32_t countWrite, vk::WriteDescriptorSet* pWrites, uint32_t copyCount, vk::CopyDescriptorSet* pCopies)
+	{
+		_device.updateDescriptorSets(countWrite, pWrites, copyCount, pCopies);
+	}
+
+	void RHI::FreeDescriptorPool(vk::DescriptorPool descriptorPool)
+	{
+		_device.destroyDescriptorPool(descriptorPool);
+	}
+
+	vk::RenderPass RHI::CreateRenderPass()
+	{
+		vk::RenderPassCreateInfo info{};
+		return _device.createRenderPass(info);
+	}
+
+	void RHI::DestroyRenderPass(vk::RenderPass pass)
+	{
+		_device.destroyRenderPass(pass);
 	}
 
 }

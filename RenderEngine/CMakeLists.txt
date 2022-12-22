@@ -1,8 +1,14 @@
 set(RenderEngine_SRC 
-	"Private/VulkanRHI.cpp"
-	"Private/RenderEngine.cpp")
+	"Private/RenderEngine.cpp" 
+	"Private/VKRHI/Renderer.cpp")
 
-add_library(RenderEngine SHARED ${RenderEngine_SRC})
+set(RenderEngine_VULKAN_RHI
+	"Private/VKRHI/VulkanRHI.cpp"
+	"Private/VKRHI/OpaquePass.cpp"
+	"Private/VKRHI/RenderPass.cpp"
+ "Private/VKRHI/RenderContext.cpp")
+
+add_library(RenderEngine SHARED ${RenderEngine_SRC} ${RenderEngine_VULKAN_RHI} )
 target_precompile_headers(RenderEngine PUBLIC "pch.hpp")
 target_include_directories(RenderEngine 
 	PUBLIC 
@@ -10,6 +16,7 @@ target_include_directories(RenderEngine
 	PRIVATE 
 		"Public/RenderEngine" 
 		"Private"
+		"Private/VKRHI"
 )
 target_compile_definitions(RenderEngine PRIVATE RENDERENGINE_IMPL)
 target_link_libraries(RenderEngine PUBLIC DirectXMath ImGui Platform)
