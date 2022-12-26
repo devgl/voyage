@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderPass.hpp"
+#include <vector>
 
 namespace voyage
 {
@@ -13,7 +14,6 @@ namespace voyage
 
 	private:
 		void _CreateDescriptorSet(RHI* rhi, Swapchain* swapchain);
-		void _CreatePipeline(RHI* rhi);
 
 	private:
 		RHI* _rhi;
@@ -23,9 +23,14 @@ namespace voyage
 		vk::DescriptorPool _descriptorPool;
 		vk::DescriptorSet _descriptorSet;
 
-		vk::DescriptorSetLayout _descriptorSetLayout;
+		std::vector<vk::DescriptorSet> _perCameraDescriptorSets;
+		std::vector<vk::DescriptorSetLayout> _descriptorSetLayouts;
+
 		vk::PipelineLayout _pipelineLayout;
 
 
+		vk::Buffer _indexBuffer;
+		vk::Buffer _vertexBuffer;
+		vk::DeviceSize _vertexBufferOffset;
 	};
 }

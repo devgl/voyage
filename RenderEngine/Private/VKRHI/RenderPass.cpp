@@ -13,4 +13,14 @@ namespace voyage
 
 	}
 
+	const vk::Rect2D& RenderContext::GetFullScreenScissorRect() const
+	{
+		return _rect;
+	}
+
+	const vk::Viewport& RenderContext::GetFullScreenViewport() const
+	{
+		return _viewport;
+	}
+
 }
