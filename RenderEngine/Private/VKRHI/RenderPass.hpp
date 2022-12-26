@@ -13,6 +13,7 @@ namespace voyage
 	{
 	public:
 		RenderPass(RHI* rhi);
+		virtual ~RenderPass() = default;
 		virtual void Draw(RenderContext* renderContext, vk::CommandBuffer cmd);
 	};
 }

@@ -63,6 +63,10 @@ namespace voyage
         vk::RenderPass CreateRenderPass();
         void DestroyRenderPass(vk::RenderPass pass);
 
+    public:
+        vk::Device device;
+        vk::PipelineCache pipelineCache;
+
     private:
         void _CreateInstance();
         void _SelectPhysicalDevice();
