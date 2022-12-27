@@ -6,6 +6,7 @@ namespace voyage
 {
 	struct RenderContext
 	{
+		RHI* rhi;
 		const vk::Rect2D& GetFullScreenScissorRect() const;
 		const vk::Viewport& GetFullScreenViewport() const;
 

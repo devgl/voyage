@@ -106,11 +106,11 @@ namespace voyage
 		info.setPNext(&features12);
 		info.setPEnabledExtensionNames(extensions);
 		info.setQueueCreateInfos(queueInfo);
-		_device = _physicalDevice.createDevice(info);
+		device = _physicalDevice.createDevice(info);
 
-		_queues[CommandQueueType_Graphics] = _device.getQueue(_queuefamilyIndex[CommandQueueType_Graphics], 0);
-		_queues[CommandQueueType_Compute] = _device.getQueue(_queuefamilyIndex[CommandQueueType_Compute], 0);
-		_queues[CommandQueueType_Transfer] = _device.getQueue(_queuefamilyIndex[CommandQueueType_Transfer], 0);
+		_queues[CommandQueueType_Graphics] = device.getQueue(_queuefamilyIndex[CommandQueueType_Graphics], 0);
+		_queues[CommandQueueType_Compute] = device.getQueue(_queuefamilyIndex[CommandQueueType_Compute], 0);
+		_queues[CommandQueueType_Transfer] = device.getQueue(_queuefamilyIndex[CommandQueueType_Transfer], 0);
 	}
 
 	struct CommandPoolData
@@ -139,19 +139,19 @@ namespace voyage
 		for (auto pPool : _commandpools[type])
 		{
 			auto data = static_cast<CommandPoolData*>(pPool);
-			if (!data->inuse == 0 && data->categoryHash == categoryHash && IsSignaledOrNull(_device, data))
+			if (!data->inuse == 0 && data->categoryHash == categoryHash && IsSignaledOrNull(device, data))
 			{
 				data->semaphore = nullptr;
 				data->signal = 0;
 				data->inuse = 1;
-				_device.resetCommandPool(data->pool);
+				device.resetCommandPool(data->pool);
 				return data->pool;
 			}
 		}
 
 		vk::CommandPoolCreateInfo info{};
 		info.queueFamilyIndex = _queuefamilyIndex[type];
-		auto pool = _device.createCommandPool(info);
+		auto pool = device.createCommandPool(info);
 
 		auto data = new CommandPoolData;
 		data->pool = pool;
@@ -189,7 +189,7 @@ namespace voyage
 		info.setPNext(&semaphoreType);
 
 		auto s = new Semaphore();
-		s->semaphore = _device.createSemaphore(info);
+		s->semaphore = device.createSemaphore(info);
 		s->signal = initialvalue;
 		return s;
 	}
@@ -200,13 +200,13 @@ namespace voyage
 		info.semaphore = semaphore->semaphore;
 		info.value = signal;
 
-		_device.signalSemaphore(info);
+		device.signalSemaphore(info);
 		semaphore->signal.store(signal);
 	}
 
 	bool RHI::IsSignaled(Semaphore* semaphore, uint64_t signal)
 	{
-		return _device.getSemaphoreCounterValue(semaphore->semaphore) >= signal;
+		return device.getSemaphoreCounterValue(semaphore->semaphore) >= signal;
 	}
 
 	uint64_t RHI::NextSignal(Semaphore* semaphore)
@@ -218,7 +218,7 @@ namespace voyage
 	{
 		if (semaphore != nullptr)
 		{
-			_device.destroySemaphore(semaphore->semaphore);
+			device.destroySemaphore(semaphore->semaphore);
 			delete semaphore;
 		}
 	}
@@ -229,7 +229,7 @@ namespace voyage
 		info.commandPool = commandpool;
 		info.level = level;
 		info.commandBufferCount = count;
-		vk::resultCheck(_device.allocateCommandBuffers(&info, pCommandBuffers), "failed to allocate command buffers");
+		vk::resultCheck(device.allocateCommandBuffers(&info, pCommandBuffers), "failed to allocate command buffers");
 	}
 
 	void RHI::SubmitCommandBuffers(CommandQueueType type, uint32_t count, const vk::SubmitInfo* pInfos)
@@ -260,12 +260,12 @@ namespace voyage
 		swapchainInfo.imageExtent = caps.currentExtent;
 		swapchainInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 		swapchainInfo.imageArrayLayers = 1;
-		swapchain->swapchain = _device.createSwapchainKHR(swapchainInfo);
+		swapchain->swapchain = device.createSwapchainKHR(swapchainInfo);
 
 		vk::FenceCreateInfo fenceInfo{};
-		swapchain->nextFrameFence = _device.createFence(fenceInfo);
+		swapchain->nextFrameFence = device.createFence(fenceInfo);
 
-		swapchain->backbuffers = _device.getSwapchainImagesKHR(swapchain->swapchain);
+		swapchain->backbuffers = device.getSwapchainImagesKHR(swapchain->swapchain);
 
 		return swapchain;
 	}
@@ -287,10 +287,10 @@ namespace voyage
 
 	bool RHI::NextFrameReady(Swapchain* swapchain)
     {
-        auto result = _device.acquireNextImageKHR(swapchain->swapchain, 0, nullptr, swapchain->nextFrameFence, &swapchain->currentFrameIndex);
+        auto result = device.acquireNextImageKHR(swapchain->swapchain, 0, nullptr, swapchain->nextFrameFence, &swapchain->currentFrameIndex);
         if (result == vk::Result::eSuccess)
         {
-			vk::resultCheck(_device.resetFences(1, &swapchain->nextFrameFence), "failed reset fences");
+			vk::resultCheck(device.resetFences(1, &swapchain->nextFrameFence), "failed reset fences");
         }
         return result == vk::Result::eSuccess;
     }
@@ -311,49 +311,8 @@ namespace voyage
 	void RHI::DestroySwapchain(Swapchain* swapchain)
 	{
 		_instance.destroySurfaceKHR(swapchain->surface);
-		_device.destroyFence(swapchain->nextFrameFence);
-		_device.destroySwapchainKHR(swapchain->swapchain);
+		device.destroyFence(swapchain->nextFrameFence);
+		device.destroySwapchainKHR(swapchain->swapchain);
 		delete swapchain;
 	}
-
-	vk::DescriptorPool RHI::AllocateDescriptorPool(uint32_t maxSets, uint32_t sizeCount, vk::DescriptorPoolSize* pSizes)
-	{
-		vk::DescriptorPoolCreateInfo info{};
-		info.maxSets = maxSets;
-		info.poolSizeCount = sizeCount;
-		info.pPoolSizes = pSizes;
-
-		return _device.createDescriptorPool(info);
-	}
-
-	void RHI::AllocateDescriptorSets(vk::DescriptorPool descriptorPool, uint32_t count, vk::DescriptorSetLayout* pLayouts, vk::DescriptorSet* pDescriptorSets)
-	{
-		vk::DescriptorSetAllocateInfo info{};
-		info.descriptorPool = descriptorPool;
-		info.descriptorSetCount = count;
-		info.pSetLayouts = pLayouts;
-		vk::resultCheck(_device.allocateDescriptorSets(&info, pDescriptorSets), "failed to allocate descriptor sets");
-	}
-
-	void RHI::UpdateDescriptorSet(vk::DescriptorSet set, uint32_t countWrite, vk::WriteDescriptorSet* pWrites, uint32_t copyCount, vk::CopyDescriptorSet* pCopies)
-	{
-		_device.updateDescriptorSets(countWrite, pWrites, copyCount, pCopies);
-	}
-
-	void RHI::FreeDescriptorPool(vk::DescriptorPool descriptorPool)
-	{
-		_device.destroyDescriptorPool(descriptorPool);
-	}
-
-	vk::RenderPass RHI::CreateRenderPass()
-	{
-		vk::RenderPassCreateInfo info{};
-		return _device.createRenderPass(info);
-	}
-
-	void RHI::DestroyRenderPass(vk::RenderPass pass)
-	{
-		_device.destroyRenderPass(pass);
-	}
-
 }

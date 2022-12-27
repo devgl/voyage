@@ -2,12 +2,32 @@
 
 namespace voyage
 {
-
 	OpaquePass::OpaquePass(RHI* rhi)
 		: RenderPass(rhi)
 		, _rhi(rhi)
 	{
-		//_CreateDescriptorSet(rhi, )
+		// pipeline layout
+		_descriptorSetLayouts.resize(2);
+
+		// per camera
+		vk::DescriptorSetLayoutBinding perCameraBindings[1]{};
+		perCameraBindings[0].binding = 0;
+		perCameraBindings[0].descriptorCount = 1;
+		perCameraBindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+		perCameraBindings[0].stageFlags = vk::ShaderStageFlagBits::eVertex;
+		vk::DescriptorSetLayoutCreateInfo perCameraSetLayoutInfo{};
+		perCameraSetLayoutInfo.setBindings(perCameraBindings);
+		_descriptorSetLayouts[0] = rhi->device.createDescriptorSetLayout(perCameraSetLayoutInfo);
+
+		// per object
+		vk::DescriptorSetLayoutBinding perObjectBindings[1]{};
+		perObjectBindings[0].binding = 1;
+		perObjectBindings[0].descriptorCount = 1;
+		perObjectBindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+		perObjectBindings[0].stageFlags = vk::ShaderStageFlagBits::eVertex;
+		vk::DescriptorSetLayoutCreateInfo perObjectSetLayoutInfo{};
+		perObjectSetLayoutInfo.setBindings(perObjectBindings);
+		_descriptorSetLayouts[1] = rhi->device.createDescriptorSetLayout(perObjectSetLayoutInfo);
 
 		vk::PipelineLayoutCreateInfo info{};
 		info.setSetLayouts(_descriptorSetLayouts);
@@ -44,7 +64,11 @@ namespace voyage
 		vk::PipelineDynamicStateCreateInfo dynamicStateInfo{};
 		dynamicStateInfo.setDynamicStates(dynamicStates);
 
+		// rendering info
+		vk::PipelineRenderingCreateInfo renderingInfo{};
+
 		vk::GraphicsPipelineCreateInfo pipelineCreateInfo{};
+		pipelineCreateInfo.setPNext(&renderingInfo);
 		pipelineCreateInfo.layout = _pipelineLayout;
 		pipelineCreateInfo.pInputAssemblyState = &inputAssemblyInfo;
 		pipelineCreateInfo.pColorBlendState = &blendStateInfo;

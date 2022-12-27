@@ -17,7 +17,6 @@ namespace voyage
 
 	private:
 		RHI* _rhi;
-		vk::RenderPass _pass;
 		vk::Pipeline _pipeline;
 
 		vk::DescriptorPool _descriptorPool;

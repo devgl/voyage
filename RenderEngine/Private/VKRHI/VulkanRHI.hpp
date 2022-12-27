@@ -55,14 +55,6 @@ namespace voyage
         void Present(Swapchain* swapchain, Semaphore* semaphore);
         void DestroySwapchain(Swapchain* swapchain);
 
-        vk::DescriptorPool AllocateDescriptorPool(uint32_t maxSets, uint32_t sizeCount, vk::DescriptorPoolSize* pSizes);
-        void AllocateDescriptorSets(vk::DescriptorPool descriptorPool, uint32_t count, vk::DescriptorSetLayout* pLayouts, vk::DescriptorSet* pDescriptorSets);
-        void UpdateDescriptorSet(vk::DescriptorSet set, uint32_t countWrite, vk::WriteDescriptorSet* pWrites, uint32_t copyCount, vk::CopyDescriptorSet* pCopies);
-        void FreeDescriptorPool(vk::DescriptorPool descriptorPool);
-
-        vk::RenderPass CreateRenderPass();
-        void DestroyRenderPass(vk::RenderPass pass);
-
     public:
         vk::Device device;
         vk::PipelineCache pipelineCache;
@@ -73,7 +65,6 @@ namespace voyage
         void _CreateDevice();
         vk::Instance _instance;
         vk::PhysicalDevice _physicalDevice;
-        vk::Device _device;
 
         static constexpr uint32_t N = CommandQueueType_Transfer + 1;
         vk::Queue _queues[N];
