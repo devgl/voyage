@@ -2,6 +2,16 @@
 
 namespace voyage
 {
+	const vk::Rect2D& RenderContext::GetFullScreenScissorRect() const
+	{
+		return _rect;
+	}
+
+	const vk::Viewport& RenderContext::GetFullScreenViewport() const
+	{
+		return _viewport;
+	}
+
 
 	RenderPass::RenderPass(RHI* rhi)
 	{
@@ -13,14 +23,12 @@ namespace voyage
 
 	}
 
-	const vk::Rect2D& RenderContext::GetFullScreenScissorRect() const
+	void RenderPass::Create(RHI* rhi, Swapchain* swapchain)
 	{
-		return _rect;
+
 	}
 
-	const vk::Viewport& RenderContext::GetFullScreenViewport() const
+	void RenderPass::Destory(RHI* rhi)
 	{
-		return _viewport;
 	}
-
 }

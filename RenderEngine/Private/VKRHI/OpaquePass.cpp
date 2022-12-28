@@ -43,15 +43,40 @@ namespace voyage
 
 		// depth stencil
 		vk::PipelineDepthStencilStateCreateInfo depthStencilStateInfo{};
+		depthStencilStateInfo.depthTestEnable = false;
+		depthStencilStateInfo.stencilTestEnable = false;
 
 		// rasterization
 		vk::PipelineRasterizationStateCreateInfo rasterStateInfo{};
+		rasterStateInfo.cullMode = vk::CullModeFlagBits::eBack;
+		rasterStateInfo.frontFace = vk::FrontFace::eClockwise;
 
 		// multi-sample
 		vk::PipelineMultisampleStateCreateInfo multisampleStateInfo{};
 
 		// vertex input
+		vk::VertexInputAttributeDescription vertexInputAttributes[3]{};
+		vertexInputAttributes[0].binding = 0;
+		vertexInputAttributes[0].format = vk::Format::eR32G32B32Sfloat;
+		vertexInputAttributes[0].location = 0;
+		vertexInputAttributes[0].offset = 0;
+		vertexInputAttributes[1].binding = 0;
+		vertexInputAttributes[1].format = vk::Format::eR32G32Sfloat;
+		vertexInputAttributes[1].location = 0;
+		vertexInputAttributes[1].offset = 0;
+		vertexInputAttributes[2].binding = 0;
+		vertexInputAttributes[2].format = vk::Format::eR32G32B32Sfloat;
+		vertexInputAttributes[2].location = 0;
+		vertexInputAttributes[2].offset = 0;
+
+		vk::VertexInputBindingDescription vertexInputBindings[1]{};
+		vertexInputBindings[0].binding = 0;
+		vertexInputBindings[0].stride = 0;
+		vertexInputBindings[0].inputRate = vk::VertexInputRate::eVertex;
+
 		vk::PipelineVertexInputStateCreateInfo vertexInputStateInfo{};
+		vertexInputStateInfo.setVertexAttributeDescriptions(vertexInputAttributes);
+		vertexInputStateInfo.setVertexBindingDescriptions(vertexInputBindings);
 
 		// dynamic states
 		vk::DynamicState dynamicStates[] = {
@@ -65,7 +90,12 @@ namespace voyage
 		dynamicStateInfo.setDynamicStates(dynamicStates);
 
 		// rendering info
+		vk::Format colorAttachmentFromats[1]{};
+		colorAttachmentFromats[0] = vk::Format::eB8G8R8A8Unorm;
 		vk::PipelineRenderingCreateInfo renderingInfo{};
+		renderingInfo.setColorAttachmentFormats(colorAttachmentFromats);
+		renderingInfo.depthAttachmentFormat = vk::Format::eD24UnormS8Uint;
+		renderingInfo.stencilAttachmentFormat = vk::Format::eD24UnormS8Uint;
 
 		vk::GraphicsPipelineCreateInfo pipelineCreateInfo{};
 		pipelineCreateInfo.setPNext(&renderingInfo);
