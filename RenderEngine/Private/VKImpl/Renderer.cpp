@@ -14,7 +14,8 @@ namespace voyage
 			_contexts[i] = new RenderContext();
 		}
 
-		_opaquePass = new OpaquePass(rhi);
+		_opaquePass = new OpaquePass();
+		_opaquePass->Create(rhi, swapchain);
 	}
 
 	void Renderer::Draw(RHI* rhi, Swapchain* swapchain, RenderScene* scene, RenderCamera* camera)
@@ -24,7 +25,7 @@ namespace voyage
 		auto renderContext = _contexts[index];
 
 		vk::CommandBuffer cmd;
-		_opaquePass->Draw(renderContext, cmd);
+		_opaquePass->Execute(renderContext, cmd);
 		
 	}
 }

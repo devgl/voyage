@@ -2,9 +2,9 @@
 
 namespace voyage
 {
-	OpaquePass::OpaquePass(RHI* rhi)
-		: RenderPass(rhi)
-		, _rhi(rhi)
+	
+
+	void OpaquePass::Create(RHI* rhi, Swapchain* swapchain)
 	{
 		// pipeline layout
 		_descriptorSetLayouts.resize(2);
@@ -82,12 +82,32 @@ namespace voyage
 		vk::DynamicState dynamicStates[] = {
 			vk::DynamicState::eScissor,
 			vk::DynamicState::eViewport,
-			vk::DynamicState::eBlendConstants, 
+			vk::DynamicState::eBlendConstants,
 			vk::DynamicState::eStencilOp,
 			vk::DynamicState::eStencilReference
 		};
 		vk::PipelineDynamicStateCreateInfo dynamicStateInfo{};
 		dynamicStateInfo.setDynamicStates(dynamicStates);
+
+		// shader modules
+		vk::ShaderModuleCreateInfo vertexShaderModuleInfo{};
+		vertexShaderModuleInfo.pCode = nullptr;
+		vertexShaderModuleInfo.codeSize = 100;
+		auto vertexShaderModule = rhi->device.createShaderModule(vertexShaderModuleInfo);
+
+		vk::ShaderModuleCreateInfo fragmentShaderModuleInfo{};
+		fragmentShaderModuleInfo.pCode = nullptr;
+		fragmentShaderModuleInfo.codeSize = 100;
+		auto fragmentShaderModule = rhi->device.createShaderModule(fragmentShaderModuleInfo);
+
+		// shader stages
+		vk::PipelineShaderStageCreateInfo shaderStages[2]{};
+		shaderStages[0].stage = vk::ShaderStageFlagBits::eVertex;
+		shaderStages[0].module = vertexShaderModule;
+		shaderStages[0].pName = "VSMain";
+		shaderStages[1].stage = vk::ShaderStageFlagBits::eFragment;
+		shaderStages[1].module = fragmentShaderModule;
+		shaderStages[1].pName = "PSMain";
 
 		// rendering info
 		vk::Format colorAttachmentFromats[1]{};
@@ -107,27 +127,28 @@ namespace voyage
 		pipelineCreateInfo.pMultisampleState = &multisampleStateInfo;
 		pipelineCreateInfo.pVertexInputState = &vertexInputStateInfo;
 		pipelineCreateInfo.pDynamicState = &dynamicStateInfo;
-		
+		pipelineCreateInfo.setStages(shaderStages);
+
 		auto [result, _pipeline] = rhi->device.createGraphicsPipeline(rhi->pipelineCache, pipelineCreateInfo);
 		vk::resultCheck(result, "failed to create opaque render pass pipeline");
 	}
 
-	OpaquePass::~OpaquePass()
+	void OpaquePass::Destroy(RHI* rhi)
 	{
-		_rhi->device.destroyPipeline(_pipeline);
+		rhi->device.destroyPipeline(_pipeline);
 	}
 
-	void OpaquePass::Draw(RenderContext* renderContext, vk::CommandBuffer cmd)
+	void OpaquePass::Execute(RenderContext* renderContext, vk::CommandBuffer cmd)
 	{
 		uint32_t currentFrameIndex = 0;
 
 		cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, _pipeline);
 		cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 0, 1, _perCameraDescriptorSets.data() + currentFrameIndex, 0, nullptr);
 
-		vk::Rect2D scissorRect = renderContext->GetFullScreenScissorRect();
+		vk::Rect2D scissorRect = renderContext->fullScreenScissorRect;
 		cmd.setScissor(0, 1, &scissorRect);
 
-		vk::Viewport viewport = renderContext->GetFullScreenViewport();
+		vk::Viewport viewport = renderContext->fullScreenViewport;
 		cmd.setViewport(0, 1, &viewport);
 
 		vk::RenderingInfo info{};
@@ -142,6 +163,7 @@ namespace voyage
 		cmd.endRendering();
 	}
 
+	/*
 	void OpaquePass::_CreateDescriptorSet(RHI* rhi, Swapchain* swapchain)
 	{
 		_descriptorSetLayouts.resize(2);
@@ -200,7 +222,7 @@ namespace voyage
 		}
 		
 
-		/*
+		
 		// pool
 		vk::DescriptorPoolSize poolSizes[] = {
 			{vk::DescriptorType::eUniformBuffer, 1},
@@ -220,7 +242,7 @@ namespace voyage
 		std::vector<vk::DescriptorSet> descriptorSets;
 		descriptorSets.resize(frameCount);
 		vk::resultCheck(rhi->device.allocateDescriptorSets(&allocInfo, descriptorSets.data()), "failed to allocate descriptor sets");
-		*/
+		
 	}
-
+	*/
 }

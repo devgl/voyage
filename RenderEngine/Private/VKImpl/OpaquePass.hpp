@@ -8,15 +8,11 @@ namespace voyage
 	class OpaquePass : public RenderPass
 	{
 	public:
-		OpaquePass(RHI* rhi);
-		~OpaquePass() override;
-		void Draw(RenderContext* renderContext, vk::CommandBuffer cmd) override;
+		void Create(RHI* rhi, Swapchain* swapchain);
+		void Destroy(RHI* rhi);
+		void Execute(RenderContext* renderContext, vk::CommandBuffer cmd) override;
 
 	private:
-		void _CreateDescriptorSet(RHI* rhi, Swapchain* swapchain);
-
-	private:
-		RHI* _rhi;
 		vk::Pipeline _pipeline;
 
 		vk::DescriptorPool _descriptorPool;
